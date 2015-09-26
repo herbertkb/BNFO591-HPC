@@ -1,0 +1,7 @@
+	PROGRAM SIMPLE
+	REAL A,B,C
+	A=1.0
+	B=2.0
+	C=A+B
+	PRINT *,"A= ",A,"B= ",B," C= ",C
+	END PROGRAM SIMPLE

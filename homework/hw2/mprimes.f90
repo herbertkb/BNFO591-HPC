@@ -33,6 +33,13 @@ do while (primes_found < m)
 
 end do
 
+!! Write to file
+open(unit=11, file="my_primes.out", status='replace')
+    do i=0,m
+        write(11,*) i, PRIMES(i)
+    end do
+close(11)
+
 !! Print the first 10 primes found
 print*, PRIMES(1:10)
 

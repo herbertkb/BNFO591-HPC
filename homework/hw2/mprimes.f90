@@ -36,7 +36,7 @@ end do
 !! Write to file
 open(unit=11, file="my_primes.out", status='replace')
     do i=0,m
-        write(11,*) i, PRIMES(i)
+        write(11,*) i, RPIMES(i)
     end do
 close(11)
 

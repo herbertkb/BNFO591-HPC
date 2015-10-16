@@ -21,25 +21,32 @@ module AdjacencyMatrix
         integer :: countEdges, countNodes
         real, allocatable :: matrix (:,:)
     end type adjMatrix   
-
+    
 contains
 
     type( adjMatrix ) function readMatrixFile (filename)
         
         character(len=*), intent(in)  :: filename
         type( adjMatrix ) :: matrix
-        integer :: EOF
-        character(len=*), optional :: currentLine
+        integer, parameter :: MAXNODES = 50
+        integer :: ios                      ! End of Line for read() IOSTAT
+        character(MAXNODES) :: currentLine
         
-        
-        
-! adapted from:
-! http://www.cs.mtu.edu/~shene/COURSES/cs201/NOTES/chap04/iostatus.html
         open(unit = 10, file=filename, status='old')
             do 
-                read (10, *, IOSTAT=EOF) currentLine
-                if (EOF .EQ. 0 ) then
-                    print*, currentLine
+                !! read whole line into currentLine
+                read (10, '(a)', IOSTAT=ios) currentLine
+                currentLine = trim(currentLine)
+                
+                if (ios .EQ. 0 ) then
+                    !! skip the line if it contains a comment char #
+                    if ( scan(currentLine, '#') > 0) then
+                        cycle
+                    endif
+                    
+                    !! process the line
+                    print *, currentLine
+                    
                 else
                     exit
                 endif

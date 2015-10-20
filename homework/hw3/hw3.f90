@@ -6,6 +6,10 @@ program hw3
             character(len=*), intent(in) :: filename
             character(len=4), intent(inout) :: pairs(:,:)
         end subroutine
+        subroutine GetUniqueValues(matrix, list)
+            character(len=4), intent(in) :: matrix(:,:)
+            character(len=4), intent(inout) :: list(:)
+        end subroutine
     end interface
     
     character(len=*),parameter :: file1="testdata.dat"
@@ -31,6 +35,12 @@ program hw3
         print *, edges(i,1), edges(i,2)
     end do
     
+    ! worst case: every node is unique so #nodes is twice #edges 
+    allocate(uniqueLabels( 2 * countOfEdges))
+    
+    call GetUniqueValues(edges, uniqueLabels)
+    
+    print *, uniqueLabels
     
 !     allocate(labels(       countOfEdges * 2) )
 !     allocate(uniqueLabels( countOfEdges * 2) )
@@ -87,7 +97,6 @@ integer function CountLinesInFile(filename) result (lineCount)
             read(11, *, iostat=iostatus) a,b  
             if (iostatus .EQ. 0) then
                 lineCount = lineCount + 1
-                print *, a,b
             else
                 exit
             end if
@@ -105,7 +114,6 @@ subroutine CollectDataPairs(filename, pairs)
     implicit none
     character(len=*), intent(in) :: filename
     character*4, intent(inout) :: pairs(:,:)
-    character(len=4) :: a, b
     integer :: i, n, iostatus 
     n = size(pairs,1) 
 
@@ -119,26 +127,36 @@ subroutine CollectDataPairs(filename, pairs)
 end subroutine CollectDataPairs
 
 
+!!--------------------------------------------------------------------------
 
-
-! subroutine f(r)
-! real(dp), intent(in) :: r(:)
-! integer :: n, i
-! n = size(r)
-! do i = 1, n
-!     r(i) = 1.0_dp / i**2
-! enddo
-! end subroutine
-! 
-! 2D arrays:
-! 
-! subroutine g(A)
-! real(dp), intent(in) :: A(:, :)
-! ...
-! end subroutine
-! 
-! and call it like this:
-! 
-! real(dp) :: r(5)
-! call f(r)
-
+subroutine GetUniqueValues(matrix, list)
+    implicit none
+    character(len=4), intent(in) :: matrix(:,:)
+    character(len=4), intent(inout) :: list(:)
+    character(len=4), allocatable :: tempList(:)
+    integer :: m, n
+    integer :: i, j, k
+    logical :: isUnique = .FALSE.
+    
+    m = size(matrix, 1)
+    n = size(matrix, 2)
+    
+    k = 0
+    do i=1, m
+        do j=1, n
+            if (.NOT. ANY( list == matrix(i,j) ) ) then
+                k = k+1
+                list(k) = matrix(i,j)
+            end if
+        end do
+    end do
+    
+    allocate(tempList(k))
+    
+    do i=1,k
+        tempList(i) = list(i)
+    end do
+    
+    list = tempList
+    
+end subroutine

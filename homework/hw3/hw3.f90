@@ -6,27 +6,38 @@ program hw3
             character(len=*), intent(in) :: filename
             character(len=4), intent(inout) :: pairs(:,:)
         end subroutine
+        
         subroutine GetUniqueValues(matrix, list)
             character(len=4), intent(in) :: matrix(:,:)
             character(len=4), intent(inout) :: list(:)
         end subroutine
+        
+        subroutine SelectionSort(array)
+            character(len=4), intent(inout) :: array(:)
+        end subroutine
+        
+        integer function StringIndex(array, string)
+            character(len=4), intent(in) :: array(:)
+            character(len=4), intent(in) :: string
+        end function
     end interface
     
     character(len=*),parameter :: file1="testdata.dat"
     character(len=4) :: labelA, labelB
     character*4, allocatable :: labels(:), uniqueLabels(:)
-    integer :: iostatus, i, j
-    integer :: countOfEdges
-    logical :: flagFoundInArray
-    integer :: indexForLabels, indexForUniqueLabels
+    integer :: iostatus, i, j, n
+    integer :: countOfEdges, countUniqueLabels
     integer :: CountLinesInFile, CollectEdgesFromFile
     character*4, dimension(:, :), allocatable :: edges
-
+    integer, dimension(:, :), allocatable :: adjMatrix
+    integer :: index_a, index_b
+    character(len=4) :: a, b
+    
+    
     countOfEdges = CountLinesInFile(file1)
     allocate( edges(countOfEdges, 2))
 
     print '("count of edges: ", I5)', countOfEdges
-    
     
     call CollectDataPairs(file1, edges)
     
@@ -40,47 +51,40 @@ program hw3
     
     call GetUniqueValues(edges, uniqueLabels)
     
-    print *, uniqueLabels
+    countUniqueLabels = size(uniqueLabels)
+    print '("count of unique nodes:", I5)', countUniqueLabels
     
-!     allocate(labels(       countOfEdges * 2) )
-!     allocate(uniqueLabels( countOfEdges * 2) )
-!     indexForLabels          = 0
-!     indexForUniqueLabels    = 0
-!        
-!     open(unit=11, file=file1, status='old')
-!         do
-!             read(11, *, iostat=iostatus) labelA, labelB
-!             print *, labelA, labelB
-!             
-!             if (iostatus .EQ. 0) then
-! !!------------------------------------------------------------------------
-!                 indexForLabels         = indexForLabels + 1
-!                 labels(indexForLabels) = labelA
-!                 
-!                 flagFoundInArray = .FALSE.
-!                 do i=1,countOfEdges*2
-!                     if (labels(i) .EQ. labelA ) then
-!                         flagFoundInArray = .TRUE.
-!                         exit
-!                     end if
-!                 end do
-!                 print *, flagFoundInArray
-!                 if(flagFoundInArray .EQV. .FALSE.) then
-!                     indexForUniqueLabels = indexForUniqueLabels + 1
-!                     uniqueLabels(indexForUniqueLabels) = labelA
-!                 end if
-! !!--------------------------------------------------------------------------                
-!                 
-!             else
-!                 exit
-!             end if
-!        end do
-!     close(unit=11)
-!     
-!     
-!     
-!     print '("count of unique labels: ", I5)', indexForUniqueLabels  
-!     print *, uniqueLabels  
+    call SelectionSort(uniqueLabels)
+    
+    !print *, uniqueLabels
+    
+    allocate( adjMatrix( countUniqueLabels, countUniqueLabels) )
+    
+    do i=1,countUniqueLabels
+        do j=1,countUniqueLabels
+            adjMatrix(i,j) = 0
+        end do
+    end do
+        
+    
+    do i=1,countOfEdges
+        !print *, edges(i,1), edges(i,2)
+        a = edges(i,1)
+        b = edges(i,2)
+        
+        index_a = StringIndex(uniqueLabels, a)
+        index_b = StringIndex(uniqueLabels, b)
+        
+        adjMatrix(index_a, index_b) = 1
+        adjMatrix(index_b, index_a) = 1
+    end do
+    
+    n = size(adjMatrix, 1)
+    print '(A7 *(A4))', "", (uniqueLabels(i), i=1,n)
+    do i=1,n
+        print '(A4 *(I4))', uniqueLabels(i), ( adjMatrix(i, j), j=1,n)
+    end do
+
     
 end program hw3
 
@@ -132,7 +136,7 @@ end subroutine CollectDataPairs
 subroutine GetUniqueValues(matrix, list)
     implicit none
     character(len=4), intent(in) :: matrix(:,:)
-    character(len=4), intent(inout) :: list(:)
+    character(len=4), allocatable, intent(inout) :: list(:)
     character(len=4), allocatable :: tempList(:)
     integer :: m, n
     integer :: i, j, k
@@ -151,12 +155,64 @@ subroutine GetUniqueValues(matrix, list)
         end do
     end do
     
+    !! resize list to remove empty cells.
+    !! TODO: make this its own subroutine
     allocate(tempList(k))
-    
     do i=1,k
         tempList(i) = list(i)
     end do
-    
+    deallocate(list)
     list = tempList
     
 end subroutine
+
+
+!! Adapted from RosettaCode.org, C implementation of Selection Sort
+subroutine SelectionSort(array)
+    implicit none
+    character(len=4), intent(inout) :: array(:)
+    integer :: n
+    integer :: i, j
+    integer :: smallest
+
+    character(len=4) :: temp
+    
+    n = size(array, 1)
+    
+    !! for each element in the array
+    do i=1,n
+    
+        !! find the ith smallest
+        smallest = i
+        do j=i, n
+            if (array(j) < array(smallest)) then
+                 smallest = j
+            end if
+        end do
+        
+        !! and swap array(i) with the ith smallest
+        temp = array(i)
+        array(i) = array(smallest)
+        array(smallest) = temp
+        
+    end do 
+    
+end subroutine
+
+
+
+integer function StringIndex(array, string)
+    character(len=4), intent(in) :: array(:)
+    character(len=4), intent(in) :: string
+    integer :: i
+    
+    do i=1,size(array)
+        if(string == array(i)) then
+            StringIndex = i
+            exit
+        end if
+    end do
+    
+    return
+    
+end function

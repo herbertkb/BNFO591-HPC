@@ -20,6 +20,18 @@ program hw3
             character(len=4), intent(in) :: array(:)
             character(len=4), intent(in) :: string
         end function
+        
+        subroutine BuildAdjacencyMatrix(matrix, edges, labels)
+            integer, allocatable, intent(inout) :: matrix(:,:)
+            character(len=4), intent(in) :: edges(:,:)
+            character(len=4), intent(in) :: labels(:)
+        end subroutine
+        
+        subroutine PrintAdjacencyMatrix(matrix, labels)
+            integer, intent(in) :: matrix(:,:)
+            character(len=4), intent(in) :: labels(:)
+        end subroutine
+        
     end interface
     
     character(len=*),parameter :: file1="testdata.dat"
@@ -56,35 +68,12 @@ program hw3
     
     call SelectionSort(uniqueLabels)
     
-    !print *, uniqueLabels
     
-    allocate( adjMatrix( countUniqueLabels, countUniqueLabels) )
+    !! Build Adjancency Matrix    
+    call BuildAdjacencyMatrix(adjMatrix, edges, uniqueLabels)
     
-    do i=1,countUniqueLabels
-        do j=1,countUniqueLabels
-            adjMatrix(i,j) = 0
-        end do
-    end do
-        
-    
-    do i=1,countOfEdges
-        !print *, edges(i,1), edges(i,2)
-        a = edges(i,1)
-        b = edges(i,2)
-        
-        index_a = StringIndex(uniqueLabels, a)
-        index_b = StringIndex(uniqueLabels, b)
-        
-        adjMatrix(index_a, index_b) = 1
-        adjMatrix(index_b, index_a) = 1
-    end do
-    
-    n = size(adjMatrix, 1)
-    print '(A7 *(A4))', "", (uniqueLabels(i), i=1,n)
-    do i=1,n
-        print '(A4 *(I4))', uniqueLabels(i), ( adjMatrix(i, j), j=1,n)
-    end do
-
+    !! print Adjancency Matrix
+    call PrintAdjacencyMatrix(adjMatrix, uniqueLabels)
     
 end program hw3
 
@@ -216,3 +205,68 @@ integer function StringIndex(array, string)
     return
     
 end function
+
+subroutine BuildAdjacencyMatrix(matrix, edges, labels)
+    implicit none
+    
+    interface
+        integer function StringIndex(array, string)
+            character(len=4), intent(in) :: array(:)
+            character(len=4), intent(in) :: string
+        end function
+        
+    end interface
+    
+    
+    integer, allocatable, intent(inout) :: matrix(:,:)
+    character(len=4), intent(in) :: edges(:,:)
+    character(len=4), intent(in) :: labels(:)
+    character(len=4) :: a, b
+    integer :: n, i,j
+    integer :: index_a, index_b
+    
+    n = size(labels)
+ 
+    !! initialize the matrix and zero-fill it
+    allocate( matrix( n, n) )
+    do i=1,n
+        do j=1,n
+            matrix(i,j) = 0
+        end do
+    end do
+        
+    
+    do i=1,size(edges, 1)
+        a = edges(i,1)
+        b = edges(i,2)
+        
+        index_a = StringIndex(labels, a)
+        index_b = StringIndex(labels, b)
+        
+        matrix(index_a, index_b) = 1
+        matrix(index_b, index_a) = 1
+    end do   
+
+end subroutine
+
+
+subroutine PrintAdjacencyMatrix(matrix, labels)
+    integer, intent(in) :: matrix(:,:)
+    character(len=4), intent(in) :: labels(:)
+    integer :: n
+    
+    n = size(matrix, 1)
+    
+    print '(A7 *(A4))', "", (labels(i), i=1,n)
+    do i=1,n
+        print '(A4 *(I4))', labels(i), ( matrix(i, j), j=1,n)
+    end do
+    
+    
+end subroutine
+
+
+
+
+
+

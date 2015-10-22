@@ -54,7 +54,7 @@ program hw3
     integer :: countOfEdges, countUniqueLabels
     character*4, allocatable :: edges(:,:)
     character*4, allocatable :: uniqueLabels(:)
-    integer, dimension(:, :), allocatable :: adjMatrix
+    integer, dimension(:, :), allocatable :: adjMatrix, tempMatrix
     logical, allocatable :: nonZeroMatrix(:,:)
     logical :: flagAllTrue
     integer :: diameter
@@ -113,14 +113,14 @@ program hw3
     end do
 !    call PrintLogicalMatrix(nonZeroMatrix, uniqueLabels)
 
-    
+
     do i=1, countUniqueLabels-1
         
         !! Multply the matrix by itself
-        adjMatrix = matmul(adjMatrix, adjMatrix)
-        
-!        call PrintAdjacencyMatrix(adjMatrix, uniqueLabels)
-        
+        adjMatrix = MATMUL(adjMatrix, adjMatrix)
+        print *, "=============================================="
+        call PrintAdjacencyMatrix(adjMatrix, uniqueLabels)
+       
         !! set all the corresponding cells in the truth matrix to true
         do j=1, size(nonZeroMatrix, 1)
             do k=1, size(nonZeroMatrix, 1)
@@ -130,9 +130,9 @@ program hw3
             end do
         end do
         
-!        print *
-!        call PrintLogicalMatrix(nonZeroMatrix, uniqueLabels)
-        
+       print *
+       call PrintLogicalMatrix(nonZeroMatrix, uniqueLabels)
+       print *, "=============================================="        
         !! Check if the entire truth matrix is true
         flagAllTrue = .TRUE.
         do j=1, size(nonZeroMatrix, 1)
@@ -303,7 +303,7 @@ subroutine BuildAdjacencyMatrix(matrix, edges, labels)
     character(len=4), intent(in) :: edges(:,:)
     character(len=4), intent(in) :: labels(:)
     character(len=4) :: a, b
-    integer :: n, i,j
+    integer :: n, i, j
     integer :: index_a, index_b
     
     n = size(labels)

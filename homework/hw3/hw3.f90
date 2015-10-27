@@ -68,23 +68,28 @@ program hw3
 
     print '("count of edges: ", I5)', countOfEdges
     write(10, '("count of edges: ", I5)') countOfEdges
-    
+   
     !! Next, collect the edges into a two column array
+    print *, "collecting edges" 
     call CollectDataPairs(file1, edges)
     
     !! And find the unique nodes in the edge list.
     ! worst case: every node is unique so #nodes is twice #edges 
+    print *, "finding unique nodes from the edge collection"
     allocate(uniqueLabels( 2 * countOfEdges))
     call GetUniqueValues(edges, uniqueLabels)
+    print *, "finding count of unique nodes"
     countUniqueLabels = size(uniqueLabels)
     
     print '("count of unique nodes:", I5)', countUniqueLabels
     write(10, '("count of unique nodes:", I5)') countUniqueLabels
     
     !! Sort the label list so the Adjancency Matrix is readable
+        print *, "sorting the unique nodes by label"
     call SelectionSort(uniqueLabels)
     
     !! Build Adjancency Matrix    
+        print *, "build the adjancency matrix"
     call BuildAdjacencyMatrix(adjMatrix, edges, uniqueLabels)
     
     !! print Adjancency Matrix
@@ -215,6 +220,7 @@ subroutine GetUniqueValues(matrix, list)
     m = size(matrix, 1)
     n = size(matrix, 2)
     
+ 
     k = 0
     do i=1, m
         do j=1, n
@@ -224,15 +230,12 @@ subroutine GetUniqueValues(matrix, list)
             end if
         end do
     end do
-    
+ 
     !! resize list to remove empty cells.
-    !! TODO: make this its own subroutine
     allocate(tempList(k))
-    do i=1,k
-        tempList(i) = list(i)
-    end do
-    deallocate(list)
+    tempList = list(:k)
     list = tempList
+
     
 end subroutine
 

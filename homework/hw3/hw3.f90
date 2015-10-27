@@ -48,7 +48,7 @@ program hw3
         
     end interface
     
-    character(len=*),parameter  ::  file1="testdata.dat"
+    character(len=*),parameter  ::  file1="testMatrix.dat"
     character(len=*),parameter  ::  fileout="testoutput_herbertkb.dat"    
     integer :: iostatus, i, j,k, n
     integer :: countOfEdges, countUniqueLabels
@@ -78,6 +78,7 @@ program hw3
     print *, "finding unique nodes from the edge collection"
     allocate(uniqueLabels( 2 * countOfEdges))
     call GetUniqueValues(edges, uniqueLabels)
+    
     print *, "finding count of unique nodes"
     countUniqueLabels = size(uniqueLabels)
     
@@ -230,12 +231,19 @@ subroutine GetUniqueValues(matrix, list)
             end if
         end do
     end do
- 
+    
+    print *, list(:k)
+         
     !! resize list to remove empty cells.
     allocate(tempList(k))
     tempList = list(:k)
+    print *, size(tempList)
+    
+    deallocate(list)
+    allocate(list(k))
+    
     list = tempList
-
+    print *, size(list)
     
 end subroutine
 

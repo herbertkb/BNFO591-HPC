@@ -1,3 +1,7 @@
+!! Keith Herbert 
+!! Homework Assignment FORTRAN 3
+!! Computes the network diameter of a network from none-node connectivity data 
+
 program hw3
     implicit none
     
@@ -46,9 +50,13 @@ program hw3
             character(len=4), intent(in) :: labels(:)
         end subroutine
         
+        integer function NetworkDiameter(matrix)
+            integer, intent(in) :: matrix(:,:)
+        end function
+        
     end interface
     
-    character(len=*),parameter  ::  file1="testMatrix.dat"
+    character(len=*),parameter  ::  file1="experimental_data.dat"
     character(len=*),parameter  ::  fileout="testoutput_herbertkb.dat"    
     integer :: iostatus, i, j,k, n
     integer :: countOfEdges, countUniqueLabels
@@ -62,6 +70,14 @@ program hw3
     !! open output file for writing
     open(unit=10, file=fileout, status='replace')
     
+    !! Print and Write a header
+    print *, "Keith Herbert"
+    print *, "27 Oct 2015"
+    print *, "Homework Assignment FORTRAN 3"
+    write (10,*) "Keith Herbert"
+    write (10,*) "27 Oct 2015"
+    write (10,*) "Homework Assignment FORTRAN 3"    
+
     !! First, count #edges described in file
     countOfEdges = CountLinesInFile(file1)
     allocate( edges(countOfEdges, 2))
@@ -86,79 +102,23 @@ program hw3
     write(10, '("count of unique nodes:", I5)') countUniqueLabels
     
     !! Sort the label list so the Adjancency Matrix is readable
-        print *, "sorting the unique nodes by label"
+    print *, "sorting the unique nodes by label"
     call SelectionSort(uniqueLabels)
     
     !! Build Adjancency Matrix    
-        print *, "build the adjancency matrix"
+    print *, "build the adjancency matrix"
     call BuildAdjacencyMatrix(adjMatrix, edges, uniqueLabels)
     
     !! print Adjancency Matrix
-    call PrintAdjacencyMatrix(adjMatrix, uniqueLabels)
-    call WriteAdjacencyMatrix(adjMatrix, uniqueLabels, 10)
+!    call PrintAdjacencyMatrix(adjMatrix, uniqueLabels)
+!    call WriteAdjacencyMatrix(adjMatrix, uniqueLabels, 10)
     
-    !!Find the diameter of the graph for the Adjancency Matrix
-    !!===============================================================
-    !! do i=1,N-1
-    !!      multiply matrix by itself
-    !!      if all elements take a value > 0
-    !!          d = i
-    !!          break    
-    !! end loop
-    
-    !! Create a matrix of booleans to indicate when each cell is nonzero atleast once
-    allocate(nonZeroMatrix (countUniqueLabels, countUniqueLabels) )
-    do i=1, size(nonZeroMatrix, 1)
-        do j=1, size(nonZeroMatrix, 1)
-            if(adjMatrix(i,j) > 0 ) then
-                nonZeroMatrix(i,j) = .TRUE.
-            else
-                nonZeroMatrix(i,j) = .FALSE.
-            end if
-        end do
-    end do
-!    call PrintLogicalMatrix(nonZeroMatrix, uniqueLabels)
 
-
-    do i=1, countUniqueLabels-1
-        
-        !! Multply the matrix by itself
-        adjMatrix = MATMUL(adjMatrix, adjMatrix)
-        print *, "=============================================="
-        call PrintAdjacencyMatrix(adjMatrix, uniqueLabels)
-       
-        !! set all the corresponding cells in the truth matrix to true
-        do j=1, size(nonZeroMatrix, 1)
-            do k=1, size(nonZeroMatrix, 1)
-                if(adjMatrix(j,k) > 0 ) then
-                    nonZeroMatrix(j,k) = .TRUE.
-                end if
-            end do
-        end do
-        
-       print *
-       call PrintLogicalMatrix(nonZeroMatrix, uniqueLabels)
-       print *, "=============================================="        
-        !! Check if the entire truth matrix is true
-        flagAllTrue = .TRUE.
-        do j=1, size(nonZeroMatrix, 1)
-            do k=1, size(nonZeroMatrix, 1)
-                if( nonZeroMatrix(j,k) .EQV. .FALSE. ) then
-                    flagAllTrue = .FALSE.
-                end if
-            end do
-        end do
-        
-        !! If it is, save the diameter and stop looping
-        if(flagAllTrue .EQV. .TRUE.) then
-            diameter = i
-            exit
-        end if
-
-    end do
+    print *, "finding network diameter"
+    diameter = NetworkDiameter(adjMatrix)
     
     print *, diameter
-    write(10, '("diameter of graph:", I5)') diameter
+    write(10, '("diameter of network is:", I5)') diameter
     
     close(10)
     
@@ -387,6 +347,80 @@ subroutine PrintLogicalMatrix(matrix, labels)
     
 end subroutine
 
+integer function NetworkDiameter( matrix )
+    integer, intent(in) :: matrix(:,:)      ! network to calculate diameter for
+    integer, allocatable :: adjMatrix(:,:)
+    logical, allocatable :: nonZeroMatrix(:,:)  ! tests if all nodes visited
+    integer :: n                            ! nodes in network, n x n matrix
+    integer :: i,j                          ! index variables
+    logical :: flagAllTrue                  ! test condition for diameter
+    
+!!Find the diameter of the graph for the Adjancency Matrix
+!!===============================================================
+!! do i=1,N-1
+!!      multiply matrix by itself
+!!      if all elements take a value > 0
+!!          d = i
+!!          break    
+!! end loop
 
+    n = size(matrix, 1)
+    adjMatrix = matrix      ! Fortran won't allow modifying dummy argument
+
+!! Create a matrix of booleans to indicate when each cell is nonzero atleast once
+    allocate(nonZeroMatrix (n, n) )
+    do i=1, n
+        do j=1, n
+            if(adjMatrix(i,j) > 0 ) then
+                nonZeroMatrix(i,j) = .TRUE.
+            else
+                nonZeroMatrix(i,j) = .FALSE.
+            end if
+        end do
+    end do
+!    call PrintLogicalMatrix(nonZeroMatrix, uniqueLabels)
+
+
+    do i=1, n-1
+        
+        !! Multply the matrix by itself
+        adjMatrix = MATMUL(adjMatrix, adjMatrix)
+        
+        !print *, "=============================================="
+        !call PrintAdjacencyMatrix(adjMatrix, uniqueLabels)
+       
+        !! set all the corresponding cells in the truth matrix to true
+        do j=1, n
+            do k=1, n
+                if(adjMatrix(j,k) > 0 ) then
+                    nonZeroMatrix(j,k) = .TRUE.
+                end if
+            end do
+        end do
+        
+       !call PrintLogicalMatrix(nonZeroMatrix, uniqueLabels)
+       !print *, "=============================================="
+               
+        !! Check if the entire truth matrix is true
+        flagAllTrue = .TRUE.
+        do j=1, n
+            do k=1, n
+                if( nonZeroMatrix(j,k) .EQV. .FALSE. ) then
+                    flagAllTrue = .FALSE.
+                end if
+            end do
+        end do
+        
+        !! Update the diameter and stop looping if whole matrix is true
+        NetworkDiameter = i
+        if(flagAllTrue .EQV. .TRUE.) then
+            exit
+        end if
+
+    end do
+
+    return
+    
+end function
 
 

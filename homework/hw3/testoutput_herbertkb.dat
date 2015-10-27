@@ -1,7 +1,6 @@
-count of edges:     3
-count of unique nodes:    3
-   a   b   c   
-a      0   1   1
-b      1   0   1
-c      1   1   0
-diameter of graph:    1
+ Keith Herbert
+ 27 Oct 2015
+ Homework Assignment FORTRAN 3
+count of edges:  3989
+count of unique nodes:  140
+diameter of network is:  139

@@ -45,34 +45,34 @@ program orderbyalpha
     allocate(codes(CountLinesInFile(IN_FILE)))
     
 !! Parse the file into an array of codes
+    print *, "Reading from ", IN_FILE
     open(unit=IN_LU, file=IN_FILE, status='old')
 !         print *, "reading ", IN_FILE    
         do i=1,size(codes)
             read(IN_LU, *, iostat=iostatus) code  
             if (iostatus .EQ. 0) then
-                print *, "reading ", code
+!                 print *, "reading ", code
                 codes(i) = code
             else
                 exit
             end if
         end do
     close(IN_LU)
-   
-   
-!! Sort the collection of codes
+  
+!! Sort the codes
+    print *, "Sorting codes"
     call SelectionSort(codes)
-    
 
-!! Write the ordered list of codes to STDOUT and OUT_FILE
+!! Output the sorted codes to file    
+    print *, "Writing to ", OUT_FILE
     open(unit=OUT_LU, file=OUT_FILE)
         do i=1,size(codes)
-            print *, i, codes(i)
+!             print *, i, codes(i)
             write (OUT_LU, *) i, codes(i) 
         enddo
     close(OUT_LU)
     
-    
-
+    print *, "done"
 endprogram
 
 !! Returns an integer equal to the number of non-blank lines in FILENAME

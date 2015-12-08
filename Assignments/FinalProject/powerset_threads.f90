@@ -59,7 +59,7 @@ program powerset
     integer(kind=8) :: time_start, time_end, time_elapsed !! timing vales
     
     integer(kind=8), dimension(3) :: calc_sets = &
-                                        (/ 10D0**3D0, 10D0**6D0, 2D0**20D0 /)
+                                        (/ 10D0**3D0, 10D0**6D0, 2D0**25D0 /)
     integer, dimension(4) :: threads = (/ 2, 4, 8, 16 /)
     integer :: num_threads
     

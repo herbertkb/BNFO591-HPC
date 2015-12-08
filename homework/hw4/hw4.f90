@@ -37,17 +37,25 @@ program hw4
             probe_file = "WPh_1Probe.txt",                      &
             letter_freq_file =  "unique_letter_fequencies.dat"  
                               
-
+                              
+    !! Variables to read sequence files
     character(:), allocatable :: full_seq, probe 
     character(len=2**20) :: temp_seq
     character(len=1024)  :: curr_line
     integer :: iostatus
     
+    integer :: i, j, k  !! never enough index variables
+    
     !! Variables for finding the unique letter frequencies 
     integer, dimension(26) :: letter_freqs = 0
     character :: letter
     integer :: letter_ascii, position
-    integer :: i
+    
+    
+    !! Variables to build pairwise matrix
+    integer :: unique_count
+    character, allocatable :: unique_letters(:)
+    integer, allocatable :: P(:,:)
     
    
 !! Read in the sequence file  
@@ -81,8 +89,10 @@ program hw4
      
     probe = temp_seq(:index(temp_seq, " "))
 
-    
-!! Find the frequency for each letter in the sequence    
+
+
+!! Find the frequency for each letter in the sequence   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
     do i=1,len(full_seq)
         !! get the letter at the current index
         letter = full_seq(i:i)
@@ -98,15 +108,60 @@ program hw4
     end do
 
 !! Display them
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     open(unit=11, file=letter_freq_file)
     do i=1,26
         if(letter_freqs(i) > 0) then
             letter = char(i+64)
-            print *, letter, letter_freqs(i)
+!             print *, letter, letter_freqs(i)
             write(11, *) letter, letter_freqs(i) 
         endif
     enddo
     close(11)
+    
+!! Pairwise Adjacency Matrix
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    !! How many unique letters are there?
+    unique_count = 0
+    do i=1,26
+        if(letter_freqs(i) > 0) then
+            unique_count = unique_count + 1
+        endif
+    enddo
+   print *, "count unique letters: ", unique_count
+   
+   
+    !! Store them
+    allocate(unique_letters(unique_count))
+    j = 0
+    do i=1,26
+        if(letter_freqs(i) > 0) then
+            letter = char(i+64)
+            unique_letters(j) = letter
+            j = j + 1
+        endif
+    enddo
+    print *, "letters: ", unique_letters
+    
+    !! Set up the pairwise matrix, P
+    allocate(P(unique_count, unique_count))
+    P = 0
+    do i=1,unique_count
+    do j=1,unique_count
+        do k=1,len(full_seq)-1
+!             print *, full_seq(k:k+1)
+            print*, unique_letters(i) // unique_letters(j)
+            if( full_seq(k:k+1) .EQ. unique_letters(i) // unique_letters(j) ) &
+                then
+                P(i,j) = P(i,j) + 1
+            end if
+        enddo
+    enddo
+    enddo
+    
+    !! Display the matrix
+    
+    
 
 
     

@@ -42,7 +42,12 @@ program hw4
     character(len=2**20) :: temp_seq
     character(len=1024)  :: curr_line
     integer :: iostatus
-    character, allocatable :: unique_letters(:)
+    
+    !! Variables for finding the unique letter frequencies 
+    integer, dimension(26) :: letter_freqs = 0
+    character :: letter
+    integer :: letter_ascii, position
+    integer :: i
     
    
 !! Read in the sequence file  
@@ -77,15 +82,31 @@ program hw4
     probe = temp_seq(:index(temp_seq, " "))
 
     
-    
-!     print *, full_seq
-!     print *, "==============================================="
-!     print *, probe
-    allocate(unique_letters(26))
-    call GetUniqueValues(full_seq, unique_letters)
-    
+!! Find the frequency for each letter in the sequence    
+    do i=1,len(full_seq)
+        !! get the letter at the current index
+        letter = full_seq(i:i)
+        
+        !! its ASCII representation
+        letter_ascii = iachar(letter)
+        
+        !! its relative position between A and Z -> (1 and 26)
+        position = letter_ascii - 64
+        
+        !! update the frequency for that position
+        letter_freqs(position) = letter_freqs(position) + 1
+    end do
 
-
+!! Display them
+    open(unit=11, file=letter_freq_file)
+    do i=1,26
+        if(letter_freqs(i) > 0) then
+            letter = char(i+64)
+            print *, letter, letter_freqs(i)
+            write(11, *) letter, letter_freqs(i) 
+        endif
+    enddo
+    close(11)
 
 
     
@@ -97,41 +118,41 @@ program hw4
     
 end program hw4
 
-subroutine GetUniqueValues(seq, list)
-    implicit none
-    character(len=1), intent(in) :: seq(:)
-    character(len=1), intent(inout) :: list(:)
-    character(len=1), allocatable :: tempList(:)
-    integer :: m, n
-    integer :: i, j, k
-    logical :: isUnique = .FALSE.
-    
-    m = size(seq)
-    
- 
-    k = 0
-    do i=1, m
-        if (.NOT. ANY( list == seq(i) ) ) then
-            k = k+1
-            list(k) = seq(i)
-        end if
-    end do
-    
-    print *, list(:k)
-         
-    !! resize list to remove empty cells.
-    allocate(tempList(k))
-    tempList = list(:k)
-    print *, size(tempList)
-    
-    deallocate(list)
-    allocate(list(k))
-    
-    list = tempList
-    print *, size(list)
-    
-end subroutine
-
+! subroutine GetUniqueValues(seq, list)
+!     implicit none
+!     character(len=1), intent(in) :: seq(:)
+!     character(len=1), intent(inout) :: list(:)
+!     character(len=1), allocatable :: tempList(:)
+!     integer :: m, n
+!     integer :: i, j, k
+!     logical :: isUnique = .FALSE.
+!     
+!     m = size(seq)
+!     
+!  
+!     k = 0
+!     do i=1, m
+!         if (.NOT. ANY( list == seq(i) ) ) then
+!             k = k+1
+!             list(k) = seq(i)
+!         end if
+!     end do
+!     
+!     print *, list(:k)
+!          
+!     !! resize list to remove empty cells.
+!     allocate(tempList(k))
+!     tempList = list(:k)
+!     print *, size(tempList)
+!     
+!     deallocate(list)
+!     allocate(list(k))
+!     
+!     list = tempList
+!     print *, size(list)
+!     
+! end subroutine
+! 
 
 
 

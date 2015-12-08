@@ -37,10 +37,19 @@ program powerset
         integer function CountLinesInFile(filename) result (lineCount)
             character(len=*), intent(in) :: filename
         end function
-    subroutine ConvertIndexToSubsetArray(x, subset)
-        integer(kind=8) :: x
-        logical, intent(inout)      :: subset(:)
-    end subroutine
+        
+        subroutine ConvertIndexToSubsetArray(indx, subset)
+            integer(kind=8)        :: indx
+            logical, intent(inout) :: subset(:)
+        end subroutine
+        
+        subroutine WriteSubset(u, ind, subset)
+            integer(kind=1), intent(in) :: u   !! logical unit for output
+            integer(kind=8), intent(in) :: ind !! index of subset to start line
+            logical, intent(inout) :: subset(:)!! subset to be printed
+        end subroutine
+        
+        
     end interface
     
 
@@ -76,19 +85,7 @@ program powerset
 
         !! Then print the subset represented by the array
         if(WRITE_TO_FILE) then
-            write(OUT_UNIT, '(I15)', ADVANCE="NO") subset_index 
-            do j=1, code_size
-                if(subset(j)) then
-                   write(OUT_UNIT, '(I2)', ADVANCE="NO") j
-                endif
-            end do
-            write(OUT_UNIT, '(I5)', ADVANCE = "NO") -999
-            do j=1, code_size
-                if(.NOT. subset(j)) then
-                   write(OUT_UNIT, '(I4)', ADVANCE="NO") j
-                endif
-            end do
-            write(OUT_UNIT, '(A)') ""
+            call WriteSubset(OUT_UNIT, subset_index, subset)
         end if
     enddo
     close(OUT_UNIT)
@@ -97,15 +94,47 @@ program powerset
 
 end program
 
-subroutine ConvertIndexToSubsetArray(x, subset)
+subroutine WriteSubset(u, ind, subset)
     implicit none
-    integer(kind=8),intent(in)  :: x
+    integer(kind=1), intent(in) :: u     !! logical unit for output
+    integer(kind=8), intent(in) :: ind   !! index of subset to start line
+    logical, intent(inout) :: subset(:)  !! subset to be printed
+    integer :: j                         !! index variable 
+
+    !! print the index at start of line
+    write(u, '(I15)', ADVANCE="NO") ind
+    
+    !! print the element IDs in the subset 
+    do j=1, size(subset)
+        if(subset(j)) then
+           write(u, '(I2)', ADVANCE="NO") j
+        endif
+    end do
+    
+    !! this separates the ins from the outs
+    write(u, '(I5)', ADVANCE = "NO") -999
+    
+    !! print the element IDs NOT in the subset
+    do j=1, size(subset)
+        if(.NOT. subset(j)) then
+           write(u, '(I4)', ADVANCE="NO") j
+        endif
+    end do
+    
+    !! new line
+    write(u, '(A)') ""
+    
+end subroutine
+
+subroutine ConvertIndexToSubsetArray(indx, subset)
+    implicit none
+    integer(kind=8),intent(in)  :: indx        
     integer(kind=8)             :: temp
     logical, intent(inout)      :: subset(:)
     integer :: i
     integer(kind=8) :: digit
     
-    temp = x    !! can't modify dummy var x, so i need to destroy temp
+    temp = indx    !! can't modify dummy var x, so i need to destroy temp
     
     do i=1,size(subset)
         !! Stop when nothing left to convert.
@@ -127,7 +156,6 @@ subroutine ConvertIndexToSubsetArray(x, subset)
         !! right shift the integer to shave off the processed digit
         temp = ishft(temp, -1)
     end do
-
 end subroutine
 
 !! Returns an integer equal to the number of non-blank lines in FILENAME

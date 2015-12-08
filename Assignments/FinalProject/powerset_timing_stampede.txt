@@ -1,0 +1,13 @@
+c557-201.stampede(19)$ ifort powerset_timing.f90 -o powerset_timing.out
+c557-201.stampede(20)$ ./powerset_timing.out 
+           0                    29
+           1                     1
+           2                     8
+           3                    85
+           4                   914
+           5                  9431
+           6                 91885
+           7                926376
+           8               9351636
+           9              94282957
+          10             133048747

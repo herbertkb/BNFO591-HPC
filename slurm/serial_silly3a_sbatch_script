@@ -1,0 +1,16 @@
+#!/bin/bash
+#SBATCH -J tmw_silly3a   # Job name
+#SBATCH -o tmw_silly3a.o%j # Name of stdout output file(%j expands to jobId)
+#SBATCH -e tmw_silly3a.o%j # Name of stderr output file(%j expands to jobId)
+#SBATCH -p serial           # Use this first and then submit to the 'normal' or 'development' queue
+#SBATCH -N 1                # Total number of nodes requested (16 cores/node)
+#SBATCH -n 1                # Total number of mpi tasks requested
+#SBATCH -t 010:30:00        # Run time (hh:mm:ss) - 10.5 hours
+# The next line is required if the user has more than one project
+#SBATCH -A TG-DEB140001  # Allocation name to charge job against
+
+# Set the number of threads per task(Default=1)
+export OMP_NUM_THREADS=1
+
+# Run the batch combinatorial enumeration application
+./silly3a.out

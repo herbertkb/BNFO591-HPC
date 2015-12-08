@@ -53,9 +53,13 @@ program hw4
     
     
     !! Variables to build pairwise matrix
-    integer :: unique_count
-    character, allocatable :: unique_letters(:)
-    integer, allocatable :: P(:,:)
+!     integer :: unique_count
+!     character, allocatable :: unique_letters(:)
+!     integer, allocatable :: P(:,:)
+    integer :: n
+    character :: curr, next
+    integer   :: c_indx, n_indx
+    integer, dimension(26,26) :: PAM = 0
     
    
 !! Read in the sequence file  
@@ -121,192 +125,33 @@ program hw4
     
 !! Pairwise Adjacency Matrix
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    !! How many unique letters are there?
-    unique_count = 0
-    do i=1,26
-        if(letter_freqs(i) > 0) then
-            unique_count = unique_count + 1
-        endif
+    do n=1,len(full_seq)-1
+        curr = full_seq(n:n)
+        next = full_seq(n+1:n+1)
+               
+        c_indx = iachar(curr)-64
+        n_indx = iachar(next)-64
+        
+        PAM(c_indx, n_indx) = PAM(c_indx, n_indx) + 1
     enddo
-   print *, "count unique letters: ", unique_count
-   
-   
-    !! Store them
-    allocate(unique_letters(unique_count))
-    j = 0
-    do i=1,26
-        if(letter_freqs(i) > 0) then
-            letter = char(i+64)
-            unique_letters(j) = letter
-            j = j + 1
-        endif
-    enddo
-    print *, "letters: ", unique_letters
     
-    !! Set up the pairwise matrix, P
-    allocate(P(unique_count, unique_count))
-    P = 0
-    do i=1,unique_count
-    do j=1,unique_count
-        do k=1,len(full_seq)-1
-!             print *, full_seq(k:k+1)
-            print*, unique_letters(i) // unique_letters(j)
-            if( full_seq(k:k+1) .EQ. unique_letters(i) // unique_letters(j) ) &
-                then
-                P(i,j) = P(i,j) + 1
-            end if
+    write(*, '(A5)', ADVANCE='NO') " "
+    do i=1,26
+        if (letter_freqs(i) == 0) cycle
+        write(*, '(A5)', ADVANCE='NO') char(i+64)
+    end do
+    write(*,*) ""
+    
+    
+    do i=1,26
+        if (letter_freqs(i) == 0) cycle
+        write(*, '(A5)', ADVANCE='NO') char(i+64)
+        do j=1,26
+            if (letter_freqs(j) == 0) cycle
+            write(*, '(I5)', ADVANCE="NO") PAM(i,j)
         enddo
+        write(*,*) ""
     enddo
-    enddo
-    
-    !! Display the matrix
-    
-    
 
-
-    
-    
-    
-    
-    
-    
     
 end program hw4
-
-! subroutine GetUniqueValues(seq, list)
-!     implicit none
-!     character(len=1), intent(in) :: seq(:)
-!     character(len=1), intent(inout) :: list(:)
-!     character(len=1), allocatable :: tempList(:)
-!     integer :: m, n
-!     integer :: i, j, k
-!     logical :: isUnique = .FALSE.
-!     
-!     m = size(seq)
-!     
-!  
-!     k = 0
-!     do i=1, m
-!         if (.NOT. ANY( list == seq(i) ) ) then
-!             k = k+1
-!             list(k) = seq(i)
-!         end if
-!     end do
-!     
-!     print *, list(:k)
-!          
-!     !! resize list to remove empty cells.
-!     allocate(tempList(k))
-!     tempList = list(:k)
-!     print *, size(tempList)
-!     
-!     deallocate(list)
-!     allocate(list(k))
-!     
-!     list = tempList
-!     print *, size(list)
-!     
-! end subroutine
-! 
-
-
-
-
-
-
-! character*(*) function ReadFastaFile(filename)
-!     implicit none
-!     character, intent(in) :: filename
-!     character(:), allocatable :: seq_trimmed
-!     character(len=2**20) :: seq
-!     character(len=1024)  :: curr_line
-!     integer :: iostatus
-!     
-!     open(unit=11, file=filename, status='old')
-!     do
-!         read(11, *, iostat=iostatus), curr_line
-!         if (iostatus .NE. 0 )        exit      ! end of file, stop reading
-!         
-!         if (curr_line(1:1) .NE. '>') then      ! skip headers
-!             seq = trim(seq) // trim(curr_line) 
-!         end if
-!     end do
-!     close(unit=11)
-!     
-!     seq_trimmed = seq(:index(seq, " "))
-!         
-! end function
-
-
-
-! function SequenceAlphabet(seq)
-!     character, allocatable :: SequenceAlphabet(:)
-!     character(len=*), intent(in) :: seq
-!     character, dimension(2**7)   :: temp_alphabet
-!     integer :: i, alphabet_size
-!     
-!     do i=1, len(temp_alphabet)
-!         if (index(seq, char(i)) > 0 ) then
-!             temp_alphabet(i) = .true.
-!         end if
-!     end do
-!     
-!     do i=1, len(temp_alphabet)
-!         if (temp_alphabet) then
-!             alphabet_size = alphabet_size + 1
-!         end if
-!     end do
-!     
-!     allocate( SequenceAlphabet(alphabet_size) )
-! end function
-
-
-!! Adapted from RosettaCode.org, C implementation of Selection Sort
-subroutine SelectionSort(array)
-    implicit none
-    character(len=1), intent(inout) :: array(:)
-    integer :: n
-    integer :: i, j
-    integer :: smallest
-
-    character(len=4) :: temp
-    
-    n = size(array, 1)
-    
-    !! for each element in the array
-    do i=1,n
-    
-        !! find the ith smallest
-        smallest = i
-        do j=i, n
-            if (array(j) < array(smallest)) then
-                 smallest = j
-            end if
-        end do
-        
-        !! and swap array(i) with the ith smallest
-        temp = array(i)
-        array(i) = array(smallest)
-        array(smallest) = temp
-        
-    end do 
-    
-end subroutine
-
-
-
-integer function StringIndexInArray(array, string)
-    character(len=4), intent(in) :: array(:)
-    character(len=4), intent(in) :: string
-    integer :: i
-    
-    do i=1,size(array)
-        if(string == array(i)) then
-            StringIndex = i
-            exit
-        end if
-    end do
-    
-    return
-    
-end function

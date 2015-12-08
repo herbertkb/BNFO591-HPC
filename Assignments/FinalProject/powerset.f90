@@ -37,6 +37,10 @@ program powerset
         integer function CountLinesInFile(filename) result (lineCount)
             character(len=*), intent(in) :: filename
         end function
+    subroutine ConvertIndexToSubsetArray(x, subset)
+        integer(kind=8) :: x
+        logical, intent(inout)      :: subset(:)
+    end subroutine
     end interface
     
 
@@ -68,38 +72,24 @@ program powerset
     do subset_index=1,HOW_FAR
         !! First we need need to convert the current index to a binary string
         !! stored in a logical array.
-        temp = subset_index
-        do j=1,code_size
-            
-            if (temp < 0) then 
-                exit
-            endif
-        
-            digit = iand(temp, 1)
-                    
-            if(digit == 0) then
-                subset(j) = .FALSE.
-            else
-                subset(j) = .TRUE.
-            end if
-           
-            temp = ishft(temp, -1)
-        end do
+        call ConvertIndexToSubsetArray(subset_index, subset)
 
         !! Then print the subset represented by the array
-        write(OUT_UNIT, '(I15)', ADVANCE="NO") subset_index 
-        do j=1, code_size
-            if(subset(j)) then
-               write(OUT_UNIT, '(I2)', ADVANCE="NO") j
-            endif
-        end do
-        write(OUT_UNIT, '(I5)', ADVANCE = "NO") -999
-        do j=1, code_size
-            if(.NOT. subset(j)) then
-               write(OUT_UNIT, '(I4)', ADVANCE="NO") j
-            endif
-        end do
-        write(OUT_UNIT, '(A)') ""
+        if(WRITE_TO_FILE) then
+            write(OUT_UNIT, '(I15)', ADVANCE="NO") subset_index 
+            do j=1, code_size
+                if(subset(j)) then
+                   write(OUT_UNIT, '(I2)', ADVANCE="NO") j
+                endif
+            end do
+            write(OUT_UNIT, '(I5)', ADVANCE = "NO") -999
+            do j=1, code_size
+                if(.NOT. subset(j)) then
+                   write(OUT_UNIT, '(I4)', ADVANCE="NO") j
+                endif
+            end do
+            write(OUT_UNIT, '(A)') ""
+        end if
     enddo
     close(OUT_UNIT)
     
@@ -107,7 +97,38 @@ program powerset
 
 end program
 
+subroutine ConvertIndexToSubsetArray(x, subset)
+    implicit none
+    integer(kind=8),intent(in)  :: x
+    integer(kind=8)             :: temp
+    logical, intent(inout)      :: subset(:)
+    integer :: i
+    integer(kind=8) :: digit
+    
+    temp = x    !! can't modify dummy var x, so i need to destroy temp
+    
+    do i=1,size(subset)
+        !! Stop when nothing left to convert.
+        if (temp < 0) then 
+            exit
+        endif
+    
+        !! Get the rightmost digit. 
+        !! This indicates membership for the ith element
+        digit = iand(temp, 1)
+        
+        !! Set that elements membership in the subset
+        if(digit == 0) then
+            subset(i) = .FALSE.
+        else
+            subset(i) = .TRUE.
+        end if
+        
+        !! right shift the integer to shave off the processed digit
+        temp = ishft(temp, -1)
+    end do
 
+end subroutine
 
 !! Returns an integer equal to the number of non-blank lines in FILENAME
 integer function CountLinesInFile(filename) result (lineCount)

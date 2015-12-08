@@ -5,38 +5,14 @@
 
 program hw4
     implicit none
-    
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    interface
-!         function SequenceAlphabet(seq)
-!             character(len=*), intent(in) :: seq
-!         end function
-        
-        subroutine SelectionSort(array)
-            character(len=1), intent(inout) :: array(:)
-        end subroutine
-        
-        integer function StringIndexInArray(array, string)
-            character(len=1), intent(in) :: array(:)
-            character(len=1), intent(in) :: string
-        end function
-!         character(*) function ReadFastaFile(filename)
-!             character(len=*), intent(in) :: filename
-!         end function
-        subroutine GetUniqueValues(seq, list)
-            character(len=1), intent(in) :: seq(:)
-            character(len=1), allocatable, intent(inout) :: list(:)
-        end subroutine
-        
-    end interface
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    
 
-
+    !! Hard Values
     character(len=*),parameter  ::                              &
             seq_file   = "TitinFastaFormat.txt",                &
             probe_file = "WPh_1Probe.txt",                      &
             letter_freq_file =  "unique_letter_fequencies.dat"  
-                              
+    
+    real, parameter :: match_threshold = 0.12                
                               
     !! Variables to read sequence files
     character(:), allocatable :: full_seq, probe 
@@ -61,7 +37,20 @@ program hw4
     integer   :: c_indx, n_indx
     integer, dimension(26,26) :: PAM = 0
     
-   
+    
+    !! Variables for Exact Linear Search
+    integer :: exact_match_count
+    character(:), allocatable :: substring
+    
+    
+    !! Variables for Partial Alignments
+    integer :: partial_alignment_count, matching_count
+    real :: match_score
+    
+    !! Timing Variables
+    real :: start_time, end_time
+    
+    
 !! Read in the sequence file  
     temp_seq = ""
     open(unit=11, file=seq_file, status='old')
@@ -117,7 +106,7 @@ program hw4
     do i=1,26
         if(letter_freqs(i) > 0) then
             letter = char(i+64)
-!             print *, letter, letter_freqs(i)
+            print *, letter, letter_freqs(i)
             write(11, *) letter, letter_freqs(i) 
         endif
     enddo
@@ -125,6 +114,7 @@ program hw4
     
 !! Pairwise Adjacency Matrix
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    !! Iterate through the sequence and update the score for each pair
     do n=1,len(full_seq)-1
         curr = full_seq(n:n)
         next = full_seq(n+1:n+1)
@@ -135,14 +125,14 @@ program hw4
         PAM(c_indx, n_indx) = PAM(c_indx, n_indx) + 1
     enddo
     
+    !! Display the matrix
     write(*, '(A5)', ADVANCE='NO') " "
     do i=1,26
         if (letter_freqs(i) == 0) cycle
         write(*, '(A5)', ADVANCE='NO') char(i+64)
     end do
     write(*,*) ""
-    
-    
+   
     do i=1,26
         if (letter_freqs(i) == 0) cycle
         write(*, '(A5)', ADVANCE='NO') char(i+64)
@@ -152,6 +142,48 @@ program hw4
         enddo
         write(*,*) ""
     enddo
+    
+    
+!! Exact Linear Search of Probe Against Full Sequence
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    exact_match_count = 0
+    do n=1,len(full_seq)-len(probe)
+        substring = full_seq(n:n+len(probe))
+        if( substring .EQ. probe  ) then
+            exact_match_count = exact_match_count + 1
+        endif
+    end do
 
+    write(*,*) "Exact Alignments of probe in sequence: ", exact_match_count
+    
+!! Partial Alignment of Probe Against Full Sequence
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+    partial_alignment_count = 0
+!     write(*,*) 1, 1, probe
+    
+    call cpu_time(start_time) 
+    do n=1,len(full_seq)-len(probe)
+        substring = full_seq(n:n+len(probe)-2)
+        matching_count = 0
+        do i=1,len(probe)
+            if( probe(i:i) .EQ. substring(i:i) ) then
+                matching_count = matching_count + 1 
+            endif
+        enddo
+        
+        
+        match_score = real(matching_count) / real(len(probe)) 
+!         print *, matching_count, match_score, len(probe)
+        
+        if( match_score >= match_threshold ) then
+            partial_alignment_count = partial_alignment_count + 1
+!             write(*,*) n, n+len(probe), substring
+        endif
+    end do
+    call cpu_time(end_time) 
+    
+    write(*,*) "Time to search for partial alignments at", match_threshold, &
+            "% threshold:", (end_time - start_time)
+    write(*,*) "Total Partial Alignments: ", partial_alignment_count
     
 end program hw4
